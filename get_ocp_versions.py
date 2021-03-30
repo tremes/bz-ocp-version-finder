@@ -5,11 +5,11 @@ Finally it tries to read version ('[0-9]+\.[0-9]+\.[0-9]+')
 from synopsis attribute of the Errata.
 The script requires Bugzilla username and password arguments and you can execute as:
 
-`python3 tools/get_ocp_versions.py -u <username> -p <password>`
+`python3 get_ocp_versions.py -u <username> -p <password>`
 
-You can optionally(default is `4.8`) provide an OCP version like:
+You can optionally provide an OCP version(default is `4.8`) like:
 
-`python3 tools/get_ocp_versions.py -u <username> -p <password> -v 4.6`
+`python3 get_ocp_versions.py -u <username> -p <password> -v 4.6`
 
 This script also requires active Kerberos ticket to be able to authorize to Erratum tool!
 """

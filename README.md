@@ -1,19 +1,39 @@
 # bz-ocp-version-finder
 Tries to find and print released OCP versions for OCP Bugzilla issues
 
-# Install dependencies
-Install dependencies with:
+# Setup
 
-`pip install -r requirements.txt`
+ * Open https://errata.devel.redhat.com/ in a browser to verify that you have permissions to access the Errata Tool.
 
-The `gssapi` dependency requires `krb5-devel` library installed on your system.
+ * [Configure Kerberos and Red Hat IdM](https://source.redhat.com/groups/public/ccs-onboarding-program/ccs_onboarding_wiki/setting_up_a_kerberos_ticket_and_red_hat_idm)
 
-# How to run
-This script needs to authenticate to Bugzilla instance and RH errata tool. You need to provide your Bugzilla username/password 
-and have valid kerberos ticket to be able to access the errata tool:
+ * Make sure that the `krb5-devel` package is installed on your system. Python's `gssapi` package needs it.
+ 
+   ```$ sudo dnf instal krb5-devel```
 
-`python3 get_ocp_versions.py -u <username> -p <password>`
+ * Set up a Python virtual environment
 
-Optionally you can provide OCP version (default is `4.8`) to limit the Bugzillas you are looking for:
+   ```$ python -m venv path/to/your/venv```
 
-`python3 get_ocp_versions.py -u <username> -p <password> -v 4.6`
+ * Enter the virtual environment
+
+   ```$ source path/to/your/venv/bin/activate```
+
+ * Install dependencies
+
+   ```$ pip install -r requirements.txt```
+
+
+# Usage
+
+ * Get a Kerberos ticket granting ticket for accessing the errata tool
+
+   ```$ kinit username@REDHAT.COM```
+
+ * Run the script with your Bugzilla account details
+
+   ```$ python3 get_ocp_versions.py -u <username> -p <password>```
+
+ * Optionally you can provide OCP version (default is `4.8`) to limit the Bugzillas you are looking for:
+
+   ```$ python3 get_ocp_versions.py -u <username> -p <password> -v 4.6```

@@ -79,7 +79,21 @@ def create_errata_bz_bugs_mapping(bug: BugzillaBug, token: str):
 
 
 def get_version_from_errata_synopsis(errata_id, auth):
-    r = requests.get(f"{ERRATA_API_URL}/{errata_id}.json", auth=auth, verify=False)
+    url = f"{ERRATA_API_URL}/{errata_id}.json"
+    r = requests.get(url, auth=auth, verify=False)
+    if not r.ok:
+        if r.status_code == 401:
+            print(
+                f"Cannot access errata at {url}: {r.status_code} {r.reason}. "
+                "Do you have a valid Kerberos TGT?"
+            )
+            exit(3)
+        else:
+            print(
+                f"Cannot access errata at {url}: {r.status_code} {r.reason}. "
+                "Are you sure you have access?"
+            )
+            exit(3)
     json_data = r.json()
     try:
         synopsis = json_data["errata"]["rhba"]["synopsis"]
@@ -108,10 +122,10 @@ if __name__ == "__main__":
 
     if args["u"] is None:
         print("Please provide your Bugzilla username with -u")
-        exit()
+        exit(1)
     if args["p"] is None:
         print("Please provide your Bugzilla password with -p")
-        exit()
+        exit(1)
 
     user = args["u"]
     password = args["p"]
@@ -120,7 +134,7 @@ if __name__ == "__main__":
     token = bz_authenticate(user, password)
     if token == "":
         print("Bugzilla authentication was not successful!")
-        exit()
+        exit(2)
     errata_neg_auth = HTTPSPNEGOAuth()
     errata_bugs = dict()
 

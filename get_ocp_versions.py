@@ -87,13 +87,13 @@ def get_version_from_errata_synopsis(errata_id, auth):
                 f"Cannot access errata at {url}: {r.status_code} {r.reason}. "
                 "Do you have a valid Kerberos TGT?"
             )
-            exit(3)
+            return f"<unknown version>"
         else:
             print(
                 f"Cannot access errata at {url}: {r.status_code} {r.reason}. "
                 "Are you sure you have access?"
             )
-            exit(3)
+            return f"<unknown version>"
     json_data = r.json()
     try:
         synopsis = json_data["errata"]["rhba"]["synopsis"]

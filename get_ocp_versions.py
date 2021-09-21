@@ -66,10 +66,11 @@ def create_errata_bz_bugs_mapping(bug: BugzillaBug, token: str):
     for c in bug_data["comments"]:
         if (
             c["creator"] == "errata-xmlrpc@redhat.com"
-            and "This bug has been added to advisory" in c["text"]
+            and ("Bug report changed to RELEASE_PENDING status" in c["text"])
         ):
-            ints = map(int, re.findall(r"\d+", c["text"]))
-            errata_id = list(ints)[1]
+            strs = map(str, re.findall(r"advisory\/\d+", c["text"]))
+            errata_id = list(strs)[0].split("/")[1]
+            #print(f"ERRATA ID is {errata_id}")
             if errata_id in errata_bugs.keys():
                 bugs = errata_bugs[errata_id]
                 bugs.append(bug)
@@ -112,6 +113,41 @@ def get_version_from_errata_synopsis(errata_id, auth):
         return f"<unknown version> No version in Errata {errata_id} synopsis:{synopsis}"
     return version.group()
 
+def get_bz_bugs(params):
+    res = requests.get(
+        f"{BUGZILLA_URL}/bug",
+        params=params,
+    )
+    return res.json()
+
+def get_all_bugs(params):
+    all_bugs_json = get_bz_bugs(params)
+    limit = all_bugs_json["limit"]
+    total_matches = all_bugs_json["total_matches"]
+
+    all_bugs=[]
+    for vb in all_bugs_json["bugs"]:
+        bug_id = vb["id"]
+        bug_summary = vb["summary"]
+        bug = BugzillaBug(bug_id, bug_summary)
+        all_bugs.append(bug)
+
+    # if the number of total bugs found is greater than limit then we have to do next request to get all the bugs
+    while int(limit) < int(total_matches):
+        params.update({
+            "limit": limit,
+            "offset": limit,
+        })
+        all_bugs_json = get_bz_bugs(params)
+        offset = all_bugs_json["offset"]
+        limit = int(limit) + int(offset)
+        for vb in all_bugs_json["bugs"]:
+            bug_id = vb["id"]
+            bug_summary = vb["summary"]
+            bug = BugzillaBug(bug_id, bug_summary)
+            all_bugs.append(bug)
+    
+    return all_bugs
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -139,24 +175,18 @@ if __name__ == "__main__":
     errata_bugs = dict()
 
     # GET BUGS
-    res = requests.get(
-        f"{BUGZILLA_URL}/bug",
-        params={
+    params = {
             "product": PRODUCT,
             "component": COMPONENT,
             "status": "CLOSED,VERIFIED",
             "version": version,
-        },
-    )
-    all_bugs = res.json()
+    }
 
-    # GET COMMENTS FOR EACH BUG
-    for vb in all_bugs["bugs"]:
-        bug_id = vb["id"]
-        bug_summary = vb["summary"]
-        bug = BugzillaBug(bug_id, bug_summary)
-        create_errata_bz_bugs_mapping(bug, token)
-
+    all_bugs = get_all_bugs(params)
+    print(f"===== Found {len(all_bugs)} bugs")
+    for b in all_bugs:
+        create_errata_bz_bugs_mapping(b, token)
+        
     bugs_with_version = []
     # GET VERSION FROM ERRATA
     for errata_id, bugs in errata_bugs.items():

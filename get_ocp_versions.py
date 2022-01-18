@@ -132,15 +132,15 @@ def get_all_bugs(params):
         bug = BugzillaBug(bug_id, bug_summary)
         all_bugs.append(bug)
 
+    page = limit
     # if the number of total bugs found is greater than limit then we have to do next request to get all the bugs
-    while int(limit) < int(total_matches):
+    while int(page) <= int(total_matches):
         params.update({
-            "limit": limit,
-            "offset": limit,
+            "limit": page,
+            "offset": page,
         })
         all_bugs_json = get_bz_bugs(params)
-        offset = all_bugs_json["offset"]
-        limit = int(limit) + int(offset)
+        page = int(page) + int(limit)
         for vb in all_bugs_json["bugs"]:
             bug_id = vb["id"]
             bug_summary = vb["summary"]

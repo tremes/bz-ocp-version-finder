@@ -36,14 +36,14 @@ class BugzillaBug:
         self.summary = summary
 
 
-def bz_authenticate(user: str, password: str):
-    r = requests.get(f"{BUGZILLA_URL}/login", params={"login": user, "password": password})
+#def bz_authenticate(user: str, password: str):
+#    r = requests.get(f"{BUGZILLA_URL}/login", params={"login": user, "password": password})
 
-    json_data = r.json()
-    if "token" not in json_data.keys():
-        print("Can't read authorization token. Please try again!")
-        return ""
-    return json_data["token"]
+#    json_data = r.json()
+#    if "token" not in json_data.keys():
+#        print("Can't read authorization token. Please try again!")
+#        return ""
+#    return json_data["token"]
 
 
 """
@@ -56,7 +56,7 @@ Then it tries to parse the errata ID from this comment
 
 
 def create_errata_bz_bugs_mapping(bug: BugzillaBug, token: str):
-    res = requests.get(f"{BUGZILLA_URL}/bug/{bug.id}/comment", params={"token": token})
+    res = requests.get(f"{BUGZILLA_URL}/bug/{bug.id}/comment", headers={"Authorization":f"Bearer {token}"})
     try:
         comments = res.json()
     except json.decoder.JSONDecodeError:
@@ -70,7 +70,6 @@ def create_errata_bz_bugs_mapping(bug: BugzillaBug, token: str):
         ):
             strs = map(str, re.findall(r"advisory\/\d+", c["text"]))
             errata_id = list(strs)[0].split("/")[1]
-            #print(f"ERRATA ID is {errata_id}")
             if errata_id in errata_bugs.keys():
                 bugs = errata_bugs[errata_id]
                 bugs.append(bug)
@@ -151,23 +150,17 @@ def get_all_bugs(params):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-u", help="Provide your Bugzilla user name")
-    parser.add_argument("-p", help="Provide your Bugzilla password")
+    parser.add_argument("-t", help="Provide your Bugzilla Key")
     parser.add_argument("-v", help="Provide component version")
     args = vars(parser.parse_args())
 
-    if args["u"] is None:
-        print("Please provide your Bugzilla username with -u")
-        exit(1)
-    if args["p"] is None:
-        print("Please provide your Bugzilla password with -p")
+    if args["t"] is None:
+        print("Please provide your Bugzilla Key with -t param")
         exit(1)
 
-    user = args["u"]
-    password = args["p"]
     version = args["v"] if args["v"] is not None else "4.8"
 
-    token = bz_authenticate(user, password)
+    token = args["t"] #bz_authenticate(user, password)
     if token == "":
         print("Bugzilla authentication was not successful!")
         exit(2)

@@ -30,10 +30,10 @@ Tries to find and print released OCP versions for OCP Bugzilla issues
 
    ```$ kinit username@REDHAT.COM```
 
- * Run the script with your Bugzilla account details
+ * Run the script with your Bugzilla key
 
-   ```$ python3 get_ocp_versions.py -u <username> -p <password>```
+   ```$ python3 get_ocp_versions.py -t <bugzilla_key>```
 
  * Optionally you can provide OCP version (default is `4.8`) to limit the Bugzillas you are looking for:
 
-   ```$ python3 get_ocp_versions.py -u <username> -p <password> -v 4.6```
+   ```$ python3 get_ocp_versions.py -t <bugzilla_key> -v 4.6```
